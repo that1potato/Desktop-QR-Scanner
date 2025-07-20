@@ -1,5 +1,9 @@
 from qr_scanner import QRScanner
+from PIL import Image
+
 import os
+import cv2
+import numpy as np
 
 
 def screenshot_test(qr_scanner):
@@ -13,7 +17,13 @@ def screenshot_test(qr_scanner):
     screenshot.save(full_path)
     
 def qrscan_test(qr_scanner):
-    pass
+    qr_path = 'test/test_qr.png'
+    test_qr = Image.open(qr_path)
+    frame = np.array(test_qr)
+    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    
+    tuple = qr_scanner.detect_decode_multi(frame)
+    print(tuple)
 
 
 def main():
