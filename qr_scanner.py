@@ -25,11 +25,19 @@ class QRScanner:
         
         return screenshot
 
-    def detect_decode_multi(self, image) -> tuple:
+    def detect_decode_multi(self, image = None) -> tuple:
         '''
-        detects and decodes multiple qr codes from the image
+        detects and decodes multiple qr codes in self.screenshot_frame 
+            or from the provided image (converted to BGR)
         returns a tuple (ok, data, points, straight_qrcode)
         '''
-        results = self.QRDetector.detectAndDecodeMulti(image)
+        if image is not None:
+            results = self.QRDetector.detectAndDecodeMulti(image)
+        else:
+            if self.screenshot_frame is None:
+                return
+            results = self.QRDetector.detectAndDecodeMulti(self.screenshot_frame)
+        
         return results
+        
 
