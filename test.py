@@ -25,11 +25,17 @@ def qrscan_test(qr_scanner):
     tuple = qr_scanner.detect_decode_multi(frame)
     print(tuple)
 
+def screenshot_and_qrscan(qr_scanner):
+    qr_scanner.take_screenshot()
+    tuple = qr_scanner.detect_decode_multi()
+    print(tuple)
+
 
 def main():
     scanner = QRScanner()
     screenshot_test(scanner)
     qrscan_test(scanner)
+    screenshot_and_qrscan(scanner)
 
 if __name__=="__main__":
     main()
