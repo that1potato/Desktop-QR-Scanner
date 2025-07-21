@@ -1,10 +1,8 @@
-from screeninfo import get_monitors
-
 import tkinter as tk
 
 
 class UI:
-    def __init__(self, root, qr_scanner):
+    def __init__(self, root, qr_scanner) -> None:
         self.root = root
         self.scanner = qr_scanner
         self.overlay_window = None
@@ -27,7 +25,7 @@ class UI:
         
         self.root.bind('<Command-Shift-1>', self.scan_and_display)
     
-    def scan_and_display(self, event=None):
+    def scan_and_display(self, event=None) -> None:
         '''
         scans the qrcode and display the overlay
         '''
@@ -114,26 +112,34 @@ class UI:
         for data, points_array in qr_tuples:
             if not data: continue 
             
-            # position text above top left
-            x = int(min(p[0] for p in points_array))
-            y = int(min(p[1] for p in points_array)) - 25 
+            # display ... if too long
+            display_text = (data[:47] + '...') if len(data) > 50 else data
+            # bounding box coords
+            min_x = int(min(p[0] for p in points_array))
+            max_x = int(max(p[0] for p in points_array))
+            min_y = int(min(p[1] for p in points_array))
+            max_y = int(max(p[1] for p in points_array))
+            
+            info_frame = tk.Frame(self.overlay_canvas)
+            label = tk.Label(info_frame, text=display_text)
+            label.pack(side=tk.LEFT, padx=5, pady=5)
+            
+            # copy button
+            copy_button = tk.Button(info_frame, image='', command=lambda d=data: self.copy_to_clipboard(d))
+            copy_button.pack(side=tk.LEFT, padx=5, pady=5)
+            
+            # render to get size
+            info_frame.update_idletasks()
+            frame_width = info_frame.winfo_width()
+            frame_height = info_frame.winfo_height()
+            
+            # info box position
+            x = min_x
+            y = max_y + 10
+            
+            self.overlay_canvas.create_window(int(x), int(y), window=info_frame, anchor='nw')
 
-            # background
-            text_id = self.overlay_canvas.create_text(
-                x, y,
-                text=data,
-                fill='white',
-                anchor='nw'
-            )
-            bbox = self.overlay_canvas.bbox(text_id)
-            rect_id = self.overlay_canvas.create_rectangle(
-                bbox[0]-5, bbox[1]-5, bbox[2]+5, bbox[3]+5,
-                fill='black',
-                outline='black'
-            )
-            self.overlay_canvas.tag_raise(text_id, rect_id)
-
-    def close_overlay(self, event=None):
+    def close_overlay(self, event=None) -> None:
         '''
         destroys the overlay window
         '''
@@ -151,3 +157,10 @@ class UI:
         items = self.overlay_canvas.find_overlapping(event.x, event.y, event.x, event.y)
         if not items: self.close_overlay()
     
+    def copy_to_clipboard(self, text):
+        '''
+        copies string to clipboard
+        '''
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+        print(f'Copied to clipboard: {text}')
