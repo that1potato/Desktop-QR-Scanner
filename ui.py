@@ -9,6 +9,7 @@ class UI:
         self.overlay_canvas = None
         self.root.title('QR Code Scanner')
         self.root.geometry('500x200')
+        self.corner_radius = 12
         
         main_label = tk.Label(
             self.root,
@@ -94,9 +95,14 @@ class UI:
         
         for _, points_array in qr_tuples:
             # convert np array to flat list
-            points_list = [int(coord) for point in points_array for coord in point]
-            self.overlay_canvas.create_polygon(
-                points_list,
+            min_x = int(min(p[0] for p in points_array))
+            max_x = int(max(p[0] for p in points_array))
+            min_y = int(min(p[1] for p in points_array))
+            max_y = int(max(p[1] for p in points_array))
+            
+            self.__create_rounded_rectangle(
+                self.overlay_canvas,
+                min_x, min_y, max_x, max_y,
                 outline='lime',
                 width=4,
                 fill=''
@@ -164,3 +170,24 @@ class UI:
         self.root.clipboard_clear()
         self.root.clipboard_append(text)
         print(f'Copied to clipboard: {text}')
+
+    def __create_rounded_rectangle(self, canvas, x1, y1, x2, y2, **kwargs) -> int:
+        '''
+        draws a rectangle with rounded corner on canvas
+        '''
+        radius = self.corner_radius
+        points = [
+            x1 + radius, y1,
+            x2 - radius, y1,
+            x2, y1,
+            x2, y1 + radius,
+            x2, y2 - radius,
+            x2, y2,
+            x2 - radius, y2,
+            x1 + radius, y2,
+            x1, y2,
+            x1, y2 - radius,
+            x1, y1 + radius,
+            x1, y1
+        ]
+        return canvas.create_polygon(points, **kwargs, smooth=True)
