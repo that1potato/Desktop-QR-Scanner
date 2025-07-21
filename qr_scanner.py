@@ -1,7 +1,7 @@
 from PIL import Image
 
 import cv2 
-import pyautogui
+import mss
 import numpy as np
 
 
@@ -14,16 +14,17 @@ class QRScanner:
         '''
         takes a full-screen screenshot for the qr detector
         overwrites self.screenshot_frame
-        returns the screenshot from pyautogui
+        returns the screenshot image (PIL.Image)
         '''    
-        screenshot = pyautogui.screenshot()
-        
-        # convert from RGB to BGR for cv2
-        frame = np.array(screenshot)
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        self.screenshot_frame = frame
-        
-        return screenshot
+        with mss.mss() as sct:
+            sct_img = sct.grab(sct.monitors[0])
+            img_pil = Image.frombytes("RGB", sct_img.size, sct_img.rgb)
+            
+            frame_np = np.array(img_pil)
+            frame_bgr = cv2.cvtColor(frame_np, cv2.COLOR_RGB2BGR)
+            self.screenshot_frame = frame_bgr
+            
+        return img_pil
 
     def detect_decode_multi(self, image = None) -> tuple:
         '''
