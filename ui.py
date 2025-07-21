@@ -72,6 +72,7 @@ class UI:
         )
         self.overlay_canvas.pack()
         self.overlay_window.bind('<Escape>', self.close_overlay)
+        self.overlay_canvas.bind('<Button-1>', self.check_click_location)
     
     def draw_bounding_boxes(self, qr_tuples) -> None:
         '''
@@ -128,3 +129,12 @@ class UI:
             self.overlay_window = None
             self.overlay_canvas = None
             print('Overlay closed')
+    
+    def check_click_location(self, event) -> None:
+        '''
+        checks if a click was on an empty area of the overlay
+        closes the overlay if empty area
+        '''
+        items = self.overlay_canvas.find_overlapping(event.x, event.y, event.x, event.y)
+        if not items: self.close_overlay()
+    
