@@ -1,3 +1,5 @@
+from screeninfo import get_monitors
+
 import tkinter as tk
 
 
@@ -7,7 +9,6 @@ class UI:
         self.scanner = qr_scanner
         self.overlay_window = None
         self.overlay_canvas = None
-        
         self.root.title('QR Code Scanner')
         self.root.geometry('500x200')
         
@@ -33,13 +34,25 @@ class UI:
         print('scanning...')
         # detect & decode
         self.scanner.take_screenshot()
+        
+        # get scale factor
+        physical_width = self.scanner.screenshot_frame.shape[1]
+        logical_width = self.root.winfo_screenwidth()
+        scale_factor = physical_width / logical_width
+        print(f'Physical width: {physical_width}, Logical width: {logical_width}, Detected Scale Factor: {scale_factor}')
+        
         ok, data, points, _ = self.scanner.detect_decode_multi()
         if not ok:
             print('No QR code detected.')
             self.close_overlay()
         else:
             print(f'Found {len(data)} QR code(s): {data}')
-            qr_tuples = list(zip(data, points))
+            # adjust for high dpi
+            scaled_points = [
+                [(p[0] / scale_factor, p[1] / scale_factor) for p in point_array] 
+                for point_array in points
+            ]
+            qr_tuples = list(zip(data, scaled_points))
             
             self.open_overlay()
             self.draw_bounding_boxes(qr_tuples)
