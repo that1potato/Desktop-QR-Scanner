@@ -1,3 +1,5 @@
+from PIL import Image, ImageTk
+
 import tkinter as tk
 
 
@@ -8,23 +10,72 @@ class UI:
         self.overlay_window = None
         self.overlay_canvas = None
         self.root.title('QR Code Scanner')
-        self.root.geometry('500x200')
+        self.root.geometry('400x300')
+        self.root.resizable(False, False)
         self.corner_radius = 12
         
-        main_label = tk.Label(
+        # display icon
+        big_qr_icon = Image.open('assets/icon/qr-code.png').resize((100, 100), Image.Resampling.LANCZOS)
+        self.big_qr_icon = ImageTk.PhotoImage(big_qr_icon)
+        
+        icon_canvas = tk.Canvas(self.root, width=100, height=100, highlightthickness=0)
+        icon_canvas.pack(pady=(30, 10))
+        icon_canvas.create_image(50, 50, image=self.big_qr_icon)
+        
+        title_label = tk.Label(
             self.root,
-            text='Press Cmd+Shift+1 to scan for QR codes.\nPress Esc to close overlay.'
+            text='QR',
+            font=('Helvetica Neue', 20, 'bold')
         )
-        main_label.pack(pady=40, padx=20)
+        title_label.pack(pady=(0, 10))
+        
+        instruction_label = tk.Label(
+            self.root,
+            text='Press Cmd+Shift+1 to scan the screen...',
+            font=('Helvetica Neue', 13) 
+        )
+        instruction_label.pack(pady=(0, 20))
+        
+        button_qr_img = Image.open('assets/icon/scanning.png').resize((16, 16), Image.Resampling.LANCZOS)
+        self.button_icon = ImageTk.PhotoImage(button_qr_img)
         
         scan_button = tk.Button(
             self.root,
-            text= 'Scan',
-            command=self.scan_and_display
+            text=' Scan Screen Now',
+            image=self.button_icon,
+            compound=tk.LEFT, 
+            command=self.scan_and_display,
+            font=('Helvetica Neue', 14),
+            relief='raised',
+            bd=0,
+            highlightthickness=0,
+            padx=15,
+            pady=8
         )
         scan_button.pack(pady=10)
         
         self.root.bind('<Command-Shift-1>', self.scan_and_display)
+    
+    def __create_rounded_rectangle(self, canvas, x1, y1, x2, y2, **kwargs) -> int:
+        '''
+        draws a rectangle with rounded corner on canvas
+        '''
+        radius = self.corner_radius
+        points = [
+            x1 + radius, y1,
+            x2 - radius, y1,
+            x2, y1,
+            x2, y1 + radius,
+            x2, y2 - radius,
+            x2, y2,
+            x2 - radius, y2,
+            x1 + radius, y2,
+            x1, y2,
+            x1, y2 - radius,
+            x1, y1 + radius,
+            x1, y1
+        ]
+        return canvas.create_polygon(points, **kwargs, smooth=True)
     
     def scan_and_display(self, event=None) -> None:
         '''
@@ -170,24 +221,3 @@ class UI:
         self.root.clipboard_clear()
         self.root.clipboard_append(text)
         print(f'Copied to clipboard: {text}')
-
-    def __create_rounded_rectangle(self, canvas, x1, y1, x2, y2, **kwargs) -> int:
-        '''
-        draws a rectangle with rounded corner on canvas
-        '''
-        radius = self.corner_radius
-        points = [
-            x1 + radius, y1,
-            x2 - radius, y1,
-            x2, y1,
-            x2, y1 + radius,
-            x2, y2 - radius,
-            x2, y2,
-            x2 - radius, y2,
-            x1 + radius, y2,
-            x1, y2,
-            x1, y2 - radius,
-            x1, y1 + radius,
-            x1, y1
-        ]
-        return canvas.create_polygon(points, **kwargs, smooth=True)
